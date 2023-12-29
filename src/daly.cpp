@@ -103,6 +103,11 @@ bool DalyBms::loop()
         case 11:
             if (!getStaticData)
                 requestCounter = getPackVoltageThreshold() ? (requestCounter + 1) : 0;
+            requestCallback();
+            break;
+        case 12:
+            if (!getStaticData)
+                requestCounter = getPackCurrentThreshold() ? (requestCounter + 1) : 0;
             requestCounter = 0;
             requestCallback();
             getStaticData = true;
@@ -135,7 +140,7 @@ bool DalyBms::getVoltageThreshold() // 0x59
 
 bool DalyBms::getPackVoltageThreshold() // 0x5A
 {
-    if (!this->requestData(COMMAND::PACK_THRESHOLDS, 1))
+    if (!this->requestData(COMMAND::PACK_VOLTAGE_THRESHOLDS, 1))
     {
         BMS_DEBUG_PRINT("<DALY-BMS DEBUG> Receive failed, min/max pack voltage thresholds won't be modified!\n");
         BMS_DEBUG_WEB("<DALY-BMS DEBUG> Receive failed, min/max pack voltage thresholds won't be modified!\n");
@@ -146,6 +151,33 @@ bool DalyBms::getPackVoltageThreshold() // 0x5A
     get.maxPackThreshold2 = (float)((this->frameBuff[0][6] << 8) | this->frameBuff[0][7]);
     get.minPackThreshold1 = (float)((this->frameBuff[0][8] << 8) | this->frameBuff[0][9]);
     get.minPackThreshold2 = (float)((this->frameBuff[0][10] << 8) | this->frameBuff[0][11]);
+
+    return true;
+}
+
+bool DalyBms::getPackCurrentThreshold() // 0x5B
+{
+    if (!this->requestData(COMMAND::PACK_CURRENT_THRESHOLDS, 1))
+    {
+        BMS_DEBUG_PRINT("<DALY-BMS DEBUG> Receive failed, over charge/discharge pack current thresholds won't be modified!\n");
+        BMS_DEBUG_WEB("<DALY-BMS DEBUG> Receive failed, over charge/discharge pack current thresholds won't be modified!\n");
+        return false;
+    }
+
+    uint16 overChargeCurrentThreshold1 = (uint16)((this->frameBuff[0][4] << 8) | this->frameBuff[0][5]);
+    uint16 overChargeCurrentThreshold2 = (uint16)((this->frameBuff[0][6] << 8) | this->frameBuff[0][7]);
+    uint16 overDischargeCurrentThreshold1 = (uint16)((this->frameBuff[0][8] << 8) | this->frameBuff[0][9]);
+    uint16 overDischargeCurrentThreshold2 = (uint16)((this->frameBuff[0][10] << 8) | this->frameBuff[0][11]);
+
+    overChargeCurrentThreshold1 = 30000 - overChargeCurrentThreshold1;
+    overChargeCurrentThreshold2 = 30000 - overChargeCurrentThreshold2;
+    overDischargeCurrentThreshold1 -= 30000;
+    overDischargeCurrentThreshold2 -= 30000;
+
+    get.overChargeCurrentThreshold1 = (float)overChargeCurrentThreshold1;
+    get.overChargeCurrentThreshold2 = (float)overChargeCurrentThreshold2;
+    get.overDischargeCurrentThreshold1 = (float)overDischargeCurrentThreshold1;
+    get.overDischargeCurrentThreshold2 = (float)overDischargeCurrentThreshold2;
 
     return true;
 }
@@ -180,8 +212,8 @@ bool DalyBms::getPackMeasurements() // 0x90
     get.packVoltage = ((float)((this->frameBuff[0][4] << 8) | this->frameBuff[0][5]) / 10.0f);
     get.packCurrent = ((float)(((this->frameBuff[0][8] << 8) | this->frameBuff[0][9]) - 30000) / 10.0f);
     get.packSOC = ((float)((this->frameBuff[0][10] << 8) | this->frameBuff[0][11]) / 10.0f);
-    //BMS_DEBUG_PRINTLN("<DALY-BMS DEBUG> " + (String)get.packVoltage + "V, " + (String)get.packCurrent + "A, " + (String)get.packSOC + "SOC");
-    //BMS_DEBUG_WEBLN("<DALY-BMS DEBUG> " + (String)get.packVoltage + "V, " + (String)get.packCurrent + "A, " + (String)get.packSOC + "SOC");
+    // BMS_DEBUG_PRINTLN("<DALY-BMS DEBUG> " + (String)get.packVoltage + "V, " + (String)get.packCurrent + "A, " + (String)get.packSOC + "SOC");
+    // BMS_DEBUG_WEBLN("<DALY-BMS DEBUG> " + (String)get.packVoltage + "V, " + (String)get.packCurrent + "A, " + (String)get.packSOC + "SOC");
     return true;
 }
 
@@ -384,7 +416,7 @@ bool DalyBms::getCellBalanceState() // 0x97
     }
 
     // BMS_DEBUG_PRINT("<DALY-BMS DEBUG> Cell Balance State: ");
-     //BMS_DEBUG_WEB("<DALY-BMS DEBUG> Cell Balance State: ");
+    // BMS_DEBUG_WEB("<DALY-BMS DEBUG> Cell Balance State: ");
     // for (size_t i = 0; i < get.numberOfCells; i++)
     //{
     //     BMS_DEBUG_PRINT(get.cellBalanceState[i]);
@@ -766,8 +798,8 @@ bool DalyBms::requestData(COMMAND cmdID, unsigned int frameAmount) // new functi
         }
         char debugBuff[128];
         sprintf(debugBuff, "<UART>[Command: 0x%2X][CRC Rec: %2X][CRC Calc: %2X]", cmdID, rxChecksum, this->frameBuff[i][XFER_BUFFER_LENGTH - 1]);
-        //BMS_DEBUG_PRINTLN(debugBuff);
-        //BMS_DEBUG_WEBLN(debugBuff);
+        // BMS_DEBUG_PRINTLN(debugBuff);
+        // BMS_DEBUG_WEBLN(debugBuff);
 
         if (rxChecksum != this->frameBuff[i][XFER_BUFFER_LENGTH - 1])
         {

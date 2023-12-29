@@ -64,7 +64,8 @@ public:
     enum COMMAND
     {
         CELL_THRESHOLDS = 0x59,
-        PACK_THRESHOLDS = 0x5A,
+        PACK_VOLTAGE_THRESHOLDS = 0x5A,
+        PACK_CURRENT_THRESHOLDS = 0x5B,
         VOUT_IOUT_SOC = 0x90,
         MIN_MAX_CELL_VOLTAGE = 0x91,
         MIN_MAX_TEMPERATURE = 0x92,
@@ -99,6 +100,12 @@ public:
         float minPackThreshold1; // Level-1 alarm threshold for low voltage in decivolts
         float maxPackThreshold2; // Level-2 alarm threshold for high voltage in decivolts
         float minPackThreshold2; // Level-2 alarm threshold for low voltage in decivolts
+
+        // data from 0x5B
+        float overChargeCurrentThreshold1; // Level-1 alarm threshold for overcharge current in deciampere
+        float overDischargeCurrentThreshold1; // Level-1 alarm threshold for overdischarge current in deciampere
+        float overChargeCurrentThreshold2; // Level-2 alarm threshold for overcharge current in deciampere
+        float overDischargeCurrentThreshold2; // Level-2 alarm threshold for overdischarge current in deciampere
 
         // data from 0x90
         float packVoltage; // pressure (0.1 V)
@@ -265,6 +272,13 @@ public:
      * @return True on successful aquisition, false otherwise
      */
     bool getPackVoltageThreshold();
+
+    /**
+     * @brief Gets pack current thresholds
+     * @return True on successful aquisition, false otherwise
+     */
+    bool getPackCurrentThreshold();
+
 
     /**
      * @brief Gets the pack temperature from the min and max of all the available temperature sensors

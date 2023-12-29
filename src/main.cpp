@@ -746,6 +746,10 @@ void getJsonData()
   packJson[F("pack_lVt")] = bms.get.minPackThreshold1 / 10;
   packJson[F("pack_hVt2")] = bms.get.maxPackThreshold2 / 10;
   packJson[F("pack_lVt2")] = bms.get.minPackThreshold2 / 10;
+  packJson[F("pack_ocCurr")] = bms.get.overChargeCurrentThreshold1 / 10;
+  packJson[F("pack_odCurr")] = bms.get.overDischargeCurrentThreshold1 / 10;
+  packJson[F("pack_ocCurr2")] = bms.get.overChargeCurrentThreshold2 / 10;
+  packJson[F("pack_odCurr2")] = bms.get.overDischargeCurrentThreshold2 / 10;
   packJson[F("High_CellNr")] = bms.get.maxCellVNum;
   packJson[F("High_CellV")] = bms.get.maxCellmV / 1000;
   packJson[F("Low_CellNr")] = bms.get.minCellVNum;
