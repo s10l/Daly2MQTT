@@ -108,6 +108,11 @@ bool DalyBms::loop()
         case 12:
             if (!getStaticData)
                 requestCounter = getPackCurrentThreshold() ? (requestCounter + 1) : 0;
+            requestCallback();
+            break;
+        case 13:
+            if (!getStaticData)
+                requestCounter = getCellDiffThreshold() ? (requestCounter + 1) : 0;
             requestCounter = 0;
             requestCallback();
             getStaticData = true;
@@ -179,6 +184,24 @@ bool DalyBms::getPackCurrentThreshold() // 0x5B
     get.overDischargeCurrentThreshold1 = (float)overDischargeCurrentThreshold1;
     get.overDischargeCurrentThreshold2 = (float)overDischargeCurrentThreshold2;
 
+    return true;
+}
+
+bool DalyBms::getCellDiffThreshold() // 0x5E
+{
+    if (!this->requestData(COMMAND::CELL_DIFF_THRESHOLDS, 1))
+    {
+        BMS_DEBUG_PRINT("<DALY-BMS DEBUG> Receive failed, cell voltage/temperature thresholds won't be modified!\n");
+        BMS_DEBUG_WEB("<DALY-BMS DEBUG> Receive failed, cell voltage/temperature thresholds won't be modified!\n");
+        return false;
+    }
+
+    get.diffCellVoltageThreshold1 = (float)((this->frameBuff[0][4] << 8) | this->frameBuff[0][5]);
+    get.diffCellVoltageThreshold2 = (float)((this->frameBuff[0][6] << 8) | this->frameBuff[0][7]);
+    
+    get.diffCellTemperatureThreshold1 = this->frameBuff[0][8];
+    get.diffCellTemperatureThreshold2 = this->frameBuff[0][9];
+    
     return true;
 }
 
