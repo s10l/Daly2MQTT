@@ -696,7 +696,7 @@ void prozessData()
     {
       notifyClients();
     }
-    if (millis() - mqtttimer > (_settings.data.mqttRefresh * 1000)  || mqtttimer == 0)
+    if (millis() - mqtttimer > (_settings.data.mqttRefresh * 1000) || mqtttimer == 0)
     {
       sendtoMQTT();
       mqtttimer = millis();
@@ -754,6 +754,8 @@ void getJsonData()
   packJson[F("cell_diffVt2")] = bms.get.diffCellVoltageThreshold2 / 1000;
   packJson[F("cell_diffTemp")] = bms.get.diffCellTemperatureThreshold1;
   packJson[F("cell_diffTemp2")] = bms.get.diffCellTemperatureThreshold2;
+  packJson[F("balancer_openVt")] = bms.get.balancerOpenVoltage / 1000;
+  packJson[F("balancer_openDiffVt")] = bms.get.balancerOpenCellDiffVoltage / 1000;
   packJson[F("High_CellNr")] = bms.get.maxCellVNum;
   packJson[F("High_CellV")] = bms.get.maxCellmV / 1000;
   packJson[F("Low_CellNr")] = bms.get.minCellVNum;

@@ -113,6 +113,11 @@ bool DalyBms::loop()
         case 13:
             if (!getStaticData)
                 requestCounter = getCellDiffThreshold() ? (requestCounter + 1) : 0;
+            requestCallback();
+            break;
+        case 14:
+            if (!getStaticData)
+                requestCounter = getBalancerThreshold() ? (requestCounter + 1) : 0;
             requestCounter = 0;
             requestCallback();
             getStaticData = true;
@@ -202,6 +207,21 @@ bool DalyBms::getCellDiffThreshold() // 0x5E
     get.diffCellTemperatureThreshold1 = this->frameBuff[0][8];
     get.diffCellTemperatureThreshold2 = this->frameBuff[0][9];
     
+    return true;
+}
+
+bool DalyBms::getBalancerThreshold() // 0x5F
+{
+    if (!this->requestData(COMMAND::BALANCER_THRESHOLDS, 1))
+    {
+        BMS_DEBUG_PRINT("<DALY-BMS DEBUG> Receive failed, balancer open voltage/voltage difference thresholds won't be modified!\n");
+        BMS_DEBUG_WEB("<DALY-BMS DEBUG> Receive failed, balancer open voltage/voltage difference thresholds won't be modified!\n");
+        return false;
+    }
+
+    get.balancerOpenVoltage = (float)((this->frameBuff[0][4] << 8) | this->frameBuff[0][5]);
+    get.balancerOpenCellDiffVoltage = (float)((this->frameBuff[0][6] << 8) | this->frameBuff[0][7]);
+
     return true;
 }
 
